@@ -3,6 +3,8 @@
 Never hard-code these numbers in logic. Import them from here.
 """
 
+from pathlib import Path
+
 # Kalshi player-points lines (points >= line wins). 10 is the minimum line.
 LINES: tuple[int, ...] = (10, 15, 20, 25, 30, 35)
 
@@ -38,3 +40,12 @@ FEE_BUFFER_CENTS: float = 2.0
 
 # Kalshi price snapshot is taken this many minutes before tip-off.
 PRICE_SNAPSHOT_MINUTES_BEFORE: int = 60
+
+# NBA data download (Phase 1.1).
+SEASONS: tuple[str, ...] = ("2021-22", "2022-23", "2023-24", "2024-25", "2025-26")
+REQUEST_DELAY_SECONDS: float = 2.0  # wait between nba_api calls
+MAX_RETRIES: int = 3  # total tries per call before giving up
+REQUEST_TIMEOUT_SECONDS: int = 60
+
+# File paths (relative to the project root).
+GAMES_PATH: Path = Path("data/games.parquet")

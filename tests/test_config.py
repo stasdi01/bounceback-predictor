@@ -39,3 +39,11 @@ def test_other_positive_settings():
     assert config.FIXED_GAP > 0
     assert config.BLOWOUT_MARGIN > 0
     assert config.PRICE_SNAPSHOT_MINUTES_BEFORE > 0
+
+
+def test_download_settings_are_valid():
+    assert len(config.SEASONS) > 0
+    assert list(config.SEASONS) == sorted(config.SEASONS)
+    assert config.REQUEST_DELAY_SECONDS >= 0
+    assert config.MAX_RETRIES >= 1
+    assert config.REQUEST_TIMEOUT_SECONDS > 0

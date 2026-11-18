@@ -157,6 +157,10 @@ All numbers live in one config file. Never hard-code them in logic.
 | BLOWOUT_MARGIN      | 20 (saved for analysis only)            |
 | FEE_BUFFER_CENTS    | 2 (check Kalshi's current fee schedule) |
 | PRICE_SNAPSHOT_MINUTES_BEFORE | 60 (minutes before tip-off)   |
+| SEASONS             | 2021-22, 2022-23, 2023-24, 2024-25, 2025-26 |
+| REQUEST_DELAY_SECONDS | 2                                     |
+| MAX_RETRIES         | 3 (total tries per API call)            |
+| REQUEST_TIMEOUT_SECONDS | 60                                  |
 
 ## 5. Money tracking (paper trading)
 
@@ -231,7 +235,7 @@ bounceback-predictor/
 └── web/                   # Next.js (Phase 5)
 ```
 
-`.gitignore` must include: `CLAUDE.md`, `data/`, `*.duckdb`, `.env`, `.venv/`, `__pycache__/`,
+`.gitignore` must include: `CLAUDE.md`, `/data/` (root folder only, so `src/data/` is still committed), `*.duckdb`, `.env`, `.venv/`, `__pycache__/`,
 `.pytest_cache/`, `.ruff_cache/`, `node_modules/`, `.DS_Store`.
 
 ## 9. Phases
@@ -261,7 +265,8 @@ and I say so. Phase 1 can be split into steps (1.1, 1.2, …), with one commit e
 - Keep: season, game id, game date, player id, player name, team id, team abbreviation,
   matchup, W/L, minutes, points, FGA, FGM, team margin.
 - Retry on timeout, and wait 2 seconds between calls. Allow choosing seasons from the command line.
-- Save as `data/games.parquet`.
+- Save as `data/games.parquet`. If only some seasons are downloaded, replace only those
+  seasons in the file and keep the others.
 
 **1.2 Build features (no future data)**
 For each player-game (grouped by player + season, sorted by date), using earlier games only:
@@ -397,3 +402,6 @@ Newest at the bottom. Format: date: decision.
 - 2026-11-17: Pick strength factors decided after the Phase 1 backtest, based on data.
 - 2026-11-17: Phase order unchanged. Kalshi price history checked at the end of Phase 1.
 - 2026-11-17: Setting PRICE_SNAPSHOT_TIME renamed to PRICE_SNAPSHOT_MINUTES_BEFORE = 60 (a plain number).
+- 2026-11-17: .gitignore uses `/data/` (root only) instead of `data/`, so code in `src/data/` is not ignored.
+- 2026-11-17: Download settings added to config: SEASONS, REQUEST_DELAY_SECONDS = 2, MAX_RETRIES = 3, REQUEST_TIMEOUT_SECONDS = 60.
+- 2026-11-17: Downloading some seasons replaces only those seasons in `data/games.parquet`; other seasons are kept.

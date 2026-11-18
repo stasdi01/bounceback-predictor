@@ -9,7 +9,8 @@ Full rules and plan: [`docs/PRD.md`](docs/PRD.md).
 
 ## Status
 
-Phase 0 (project setup) is done. No brain logic or data download yet.
+Phase 0 (project setup) is done. Phase 1, step 1.1 (download data) is done.
+No brain logic yet.
 
 ## Setup
 
@@ -26,6 +27,22 @@ pip install -r requirements.txt
 ```bash
 pytest -q
 ```
+
+## Download NBA data
+
+Downloads regular-season player game logs from NBA.com (with `nba_api`),
+adds the team's final score margin to each row, and saves
+`data/games.parquet`. Run it on your own computer: NBA.com often blocks
+cloud servers.
+
+```bash
+python -m src.data.download_games                          # all seasons in src/config.py
+python -m src.data.download_games --seasons 2024-25 2025-26
+```
+
+When you choose some seasons, only those seasons are replaced in
+`data/games.parquet`; the other seasons stay. A full download takes
+about 30 seconds (10 calls, 2 seconds apart).
 
 ## Settings
 
