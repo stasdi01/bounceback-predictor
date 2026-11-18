@@ -122,7 +122,7 @@ that really improve the hit rate.
 Candidate factors (saved for every pick in Phase 1):
 | Factor | Meaning |
 |---|---|
-| Personal bounce-back rate | How often this player reached the line after his earlier bad games (earlier games only) |
+| Personal bounce-back rate | How often this player reached the line after his earlier bad games (earlier games only). An earlier bad game counts only if the brain would have triggered on it at that time (10+ games, average 14 to 29.9, last game ≤ 60% of average). Saved in two versions: **this season only** and **all earlier games in our data** (including earlier seasons). The 1.4 report shows which is more useful. |
 | Unlucky bad game | Bad game with normal minutes (≥ 75% of his average) and normal shot attempts (≥ 75% of his average FGA), so the low score came from poor shooting |
 | Consistency | His hit rate on the chosen line this season (earlier games only) |
 | Size of the drop | Last game points ÷ season average (lower = bigger drop) |
@@ -276,6 +276,14 @@ For each player-game (grouped by player + season, sorted by date), using earlier
 - `hit_{line}` for each Kalshi line: share of earlier games where he reached that line
 - Strength factors from 4.7: personal bounce-back rate, unlucky bad game, consistency,
   drop size (`last_pts / avg_pts`)
+  - Personal bounce-back rate, two versions:
+    `bb_count_season`, `bb_rate_season_{line}` (this season only) and
+    `bb_count_all`, `bb_rate_all_{line}` (all earlier games, including earlier seasons)
+  - Unlucky bad game: `normal_volume` (last game minutes and FGA both ≥ 75% of average);
+    combined with the bad-game trigger in 1.3
+  - Consistency: `hit_{line}` for the chosen line (picked in 1.3)
+- `days_since_last_game`: days between this game and his last game this season.
+  Saved for analysis only, not a rule.
 
 **1.3 Apply rules**
 
@@ -405,3 +413,6 @@ Newest at the bottom. Format: date: decision.
 - 2026-11-17: .gitignore uses `/data/` (root only) instead of `data/`, so code in `src/data/` is not ignored.
 - 2026-11-17: Download settings added to config: SEASONS, REQUEST_DELAY_SECONDS = 2, MAX_RETRIES = 3, REQUEST_TIMEOUT_SECONDS = 60.
 - 2026-11-17: Downloading some seasons replaces only those seasons in `data/games.parquet`; other seasons are kept.
+- 2026-11-18: Personal bounce-back rate counts an earlier bad game only if the brain would have triggered on it then (10+ games, average 14 to 29.9, last game ≤ 60%).
+- 2026-11-18: Personal bounce-back rate saved in two versions: this season only, and all earlier games including earlier seasons.
+- 2026-11-18: `days_since_last_game` added as a feature, for analysis only (not a rule).
