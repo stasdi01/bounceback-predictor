@@ -25,8 +25,25 @@ INFO_COLUMNS = [
 ]
 
 
+def add_end_of_season_flags(features: pd.DataFrame) -> pd.DataFrame:
+    """Analysis only, NOT a rule: is the game / the last game near the season end?
+
+    Season end = last game date in our data for that season. This looks at the
+    schedule end, which is known in advance, so it is fine for analysis. Note: for
+    a season still in progress, the "end" would just be the latest date we have.
+    """
+    df = features.copy()
+    season_end = df.groupby("season")["game_date"].transform("max")
+    cutoff = season_end - pd.Timedelta(days=config.END_OF_SEASON_DAYS)
+    last_game_date = df["game_date"] - pd.to_timedelta(df["days_since_last_game"], unit="D")
+    df["end_of_season"] = df["game_date"] > cutoff
+    df["last_game_end_of_season"] = (last_game_date > cutoff).fillna(False).astype(bool)
+    return df
+
+
 def add_trigger_and_flags(features: pd.DataFrame) -> pd.DataFrame:
     """Eligible rows only, with trigger, confidence and analysis flags."""
+    features = add_end_of_season_flags(features)
     df = features[eligible_by_stats(features["avg_pts"], features["games_before"])].copy()
     df["is_brain"] = is_bad_game(df["last_pts"], df["avg_pts"])
     df["confidence"] = confidence(df["prev2_pts"], df["avg_pts"]).where(df["is_brain"])
@@ -60,7 +77,8 @@ def picks_for_rule(df: pd.DataFrame, rule_name: str) -> pd.DataFrame:
 
 PICK_COLUMNS = INFO_COLUMNS + [
     "line_rule", "line", "is_brain", "confidence", "hit", "low_minutes", "blowout",
-    "unlucky_bad_game", "consistency", "bb_rate_season", "bb_rate_all",
+    "unlucky_bad_game", "end_of_season", "last_game_end_of_season",
+    "consistency", "bb_rate_season", "bb_rate_all",
 ]
 
 

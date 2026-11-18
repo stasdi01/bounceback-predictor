@@ -47,5 +47,17 @@ REQUEST_DELAY_SECONDS: float = 2.0  # wait between nba_api calls
 MAX_RETRIES: int = 3  # total tries per call before giving up
 REQUEST_TIMEOUT_SECONDS: int = 60
 
+# Analysis-only flag (1.3): game in the last N days of the regular season.
+END_OF_SEASON_DAYS: int = 7
+
+# Backtest report (1.4).
+CI_Z: float = 1.96  # z-value for the 95% range of the hit rate (Wilson method)
+MIN_RELIABLE_PICKS: int = 300  # fewer picks -> marked "small sample"
+STRENGTH_BUCKETS: int = 3  # low / mid / high groups for each strength factor
+DAYS_SINCE_BINS: tuple[int, ...] = (1, 2, 4, 8)  # groups: 1 / 2-3 / 4-7 / 8+
+REPORT_EXAMPLE_PICKS: int = 10
+REPORT_SEED: int = 42
+
 # File paths (relative to the project root).
 GAMES_PATH: Path = Path("data/games.parquet")
+REPORT_PATH: Path = Path("data/report.txt")

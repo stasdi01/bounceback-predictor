@@ -130,6 +130,9 @@ Candidate factors (saved for every pick in Phase 1):
 
 **Temporary order until then:** strong before normal → lowest (last game ÷ season average) → higher odds.
 
+**How the strength score is chosen:** using seasons **2021-22 to 2023-24** only, then checked
+on **2024-25 and 2025-26**. This avoids choosing and testing on the same data.
+
 ### 4.8 No-cheating rule (very important)
 
 Every value used to make a pick (season average, last game, game before last, line hit rates,
@@ -161,6 +164,13 @@ All numbers live in one config file. Never hard-code them in logic.
 | REQUEST_DELAY_SECONDS | 2                                     |
 | MAX_RETRIES         | 3 (total tries per API call)            |
 | REQUEST_TIMEOUT_SECONDS | 60                                  |
+| CI_Z                | 1.96 (95% range of the hit rate)        |
+| MIN_RELIABLE_PICKS  | 300 (fewer picks = marked "small sample") |
+| STRENGTH_BUCKETS    | 3 (low / mid / high groups in the report) |
+| DAYS_SINCE_BINS     | 1, 2, 4, 8 (groups 1 / 2–3 / 4–7 / 8+)  |
+| REPORT_EXAMPLE_PICKS | 10                                     |
+| REPORT_SEED         | 42                                      |
+| END_OF_SEASON_DAYS  | 7 (analysis only, not a rule)           |
 
 ## 5. Money tracking (paper trading)
 
@@ -291,6 +301,10 @@ For each player-game (grouped by player + season, sorted by date), using earlier
 - Also create **baseline** picks: same eligibility and line rule, no trigger.
   The baseline is every eligible game, so it includes the brain picks.
 - Analysis flags: `low_minutes` (last game minutes < 75% of avg), `blowout` (|last team margin| ≥ 20).
+- End-of-season flags (analysis only, not a rule). The season end = last game date in our data
+  for that season:
+  - `end_of_season`: the pick's game is in the last 7 days of the regular season.
+  - `last_game_end_of_season`: the bad game (last game) was in the last 7 days.
 - `hit` = points ≥ line.
 
 **1.4 Report** (printed and saved)
@@ -298,7 +312,8 @@ For each line rule, show picks, wins, hit rate, max price, and the 95% range of 
 
 1. Brain (normal, strong) vs baseline, plus one extra row: baseline on non-bad games only
 2. Brain picks by line (10+, 15+, 20+, …)
-3. By bad-game reason (low minutes, blowout, unlucky)
+3. By bad-game reason (low minutes, blowout, unlucky, end of season for the pick's game
+   and for the bad game)
 4. **By each strength factor** (for example personal bounce-back rate high vs low)
 5. By season (is it stable?)
 6. Example picks
@@ -418,3 +433,6 @@ Newest at the bottom. Format: date: decision.
 - 2026-11-18: Personal bounce-back rate saved in two versions: this season only, and all earlier games including earlier seasons.
 - 2026-11-18: `days_since_last_game` added as a feature, for analysis only (not a rule).
 - 2026-11-18: Baseline = every eligible game, including the brain picks. The 1.4 report also shows baseline on non-bad games only.
+- 2026-11-18: Report settings added: CI_Z = 1.96, MIN_RELIABLE_PICKS = 300, STRENGTH_BUCKETS = 3, DAYS_SINCE_BINS = 1, 2, 4, 8, REPORT_EXAMPLE_PICKS = 10, REPORT_SEED = 42.
+- 2026-11-18: Strength score will be chosen on 2021-22 to 2023-24 and checked on 2024-25 and 2025-26.
+- 2026-11-18: End-of-season analysis flags added (pick's game and bad game in the last END_OF_SEASON_DAYS = 7 days of the season). Analysis only, not a rule.

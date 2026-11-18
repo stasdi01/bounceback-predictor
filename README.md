@@ -9,10 +9,9 @@ Full rules and plan: [`docs/PRD.md`](docs/PRD.md).
 
 ## Status
 
-Phase 0 (project setup) is done. Phase 1: step 1.1 (download data),
-step 1.2 (build features, `src/brain/features.py`) and step 1.3 (apply
-rules, `src/brain/picks.py`) are done. The backtest report (step 1.4)
-is not built yet.
+Phase 0 (project setup) is done. Phase 1: steps 1.1 (download data),
+1.2 (build features), 1.3 (apply rules) and 1.4 (backtest report) are
+done. Saving picks, summary and DuckDB (step 1.5) is not built yet.
 
 ## Setup
 
@@ -45,6 +44,17 @@ python -m src.data.download_games --seasons 2024-25 2025-26
 When you choose some seasons, only those seasons are replaced in
 `data/games.parquet`; the other seasons stay. A full download takes
 about 30 seconds (10 calls, 2 seconds apart).
+
+## Run the backtest
+
+Needs `data/games.parquet` (see above). Builds features, applies the
+brain rules and prints the report (brain vs baseline, by line, by
+bad-game reason, by strength factor, by season, example picks). The
+report is also saved to `data/report.txt`.
+
+```bash
+python -m src.backtest.run
+```
 
 ## Settings
 

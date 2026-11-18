@@ -159,3 +159,33 @@ def test_own_points_change_only_the_hit():
     assert base["hit"].all() and not changed["hit"].any()
     other = [c for c in base.columns if c not in ("pts", "hit")]
     pd.testing.assert_frame_equal(base[other], changed[other])
+
+
+# --- end-of-season flags (analysis only) ------------------------------------
+
+def test_end_of_season_flags():
+    # 20 games, 2 days apart. Season end = game 20. Last 7 days = games 17-20
+    # (0, 2, 4, 6 days before the end); game 16 is 8 days before.
+    picks = picks_for(make_games([20] * 20))
+    fixed = picks[picks["line_rule"] == "fixed_gap"].set_index("games_before")
+    # games_before 15 = game 16, ... games_before 19 = game 20
+    assert fixed["end_of_season"].to_dict() == {
+        10: False, 11: False, 12: False, 13: False, 14: False,
+        15: False, 16: True, 17: True, 18: True, 19: True,
+    }
+    # The last game (bad game) is in the last 7 days from game 18 on.
+    assert fixed["last_game_end_of_season"].to_dict() == {
+        10: False, 11: False, 12: False, 13: False, 14: False,
+        15: False, 16: False, 17: True, 18: True, 19: True,
+    }
+
+
+def test_end_of_season_uses_each_seasons_own_end():
+    games = pd.concat([
+        make_games([20] * 15, season="2023-24", start="2023-10-24"),
+        make_games([20] * 15, season="2024-25", start="2024-10-22"),
+    ])
+    picks = picks_for(games)
+    last_rows = picks[picks["games_before"] == 14]
+    assert len(last_rows) == 4  # 2 seasons x 2 line rules
+    assert last_rows["end_of_season"].all()
