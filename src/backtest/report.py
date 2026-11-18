@@ -5,10 +5,11 @@
 `format_report(...)` turns it into plain text.
 """
 
-import numpy as np
 import pandas as pd
 
 from src import config
+from src.backtest.compare import ALL_LINES, format_comparison
+from src.backtest.groups import days_buckets, quantile_buckets
 from src.backtest.stats import summarize
 
 SECTIONS = {
@@ -21,41 +22,6 @@ SECTIONS = {
 
 REASON_FLAGS = ["low_minutes", "blowout", "unlucky_bad_game", "end_of_season", "last_game_end_of_season"]
 QUANTILE_FACTORS = ["bb_rate_season", "bb_rate_all", "consistency", "drop_ratio"]
-BUCKET_NAMES = {1: ["all"], 2: ["low", "high"], 3: ["low", "mid", "high"]}
-
-
-# --- grouping helpers -------------------------------------------------------
-
-def quantile_buckets(values: pd.Series, n: int = config.STRENGTH_BUCKETS) -> pd.Series:
-    """Split values into n equal-size groups, labelled with their value range.
-
-    Missing values get "no data". If many values are equal, fewer groups may result.
-    """
-    labels = pd.Series("no data", index=values.index, dtype=object)
-    present = values.dropna()
-    if present.empty:
-        return labels
-    codes, edges = pd.qcut(present, q=n, labels=False, retbins=True, duplicates="drop")
-    names = BUCKET_NAMES.get(len(edges) - 1, [f"q{i + 1}" for i in range(len(edges) - 1)])
-    for code, name in enumerate(names):
-        labels[codes.index[codes == code]] = f"{code + 1}. {name} ({edges[code]:.2f} to {edges[code + 1]:.2f})"
-    return labels
-
-
-def days_buckets(days: pd.Series, bins=config.DAYS_SINCE_BINS) -> pd.Series:
-    """Fixed groups for days since last game, e.g. 1 / 2-3 / 4-7 / 8+."""
-    labels = pd.Series("no data", index=days.index, dtype=object)
-    edges = list(bins) + [np.inf]
-    for low, high in zip(edges[:-1], edges[1:]):
-        rows = (days >= low) & (days < high)
-        if high == np.inf:
-            name = f"{low}+"
-        elif high - low == 1:
-            name = f"{low}"
-        else:
-            name = f"{low}-{high - 1}"
-        labels[rows] = f"{name} days"
-    return labels
 
 
 # --- sections ---------------------------------------------------------------
@@ -166,26 +132,42 @@ def _format_table(rows: pd.DataFrame) -> str:
         "95% range": [
             "-" if pd.isna(lo) else f"{lo:.1%} to {hi:.1%}" for lo, hi in zip(rows["ci_low"], rows["ci_high"])
         ],
-        "max price": [_fmt(v, "{:.1f}c") for v in rows["max_price_cents"]],
+        # A max price of 0 or below means "no price makes money": show "-".
+        "max price": ["-" if v <= 0 else _fmt(v, "{:.1f}c") for v in rows["max_price_cents"]],
         "min odds": [_fmt(v, "{:.2f}") for v in rows["min_odds"]],
         "note": rows["small_sample"].map({True: "*", False: ""}),
     })
     return table.to_string(index=False)
 
 
-def format_report(summary: pd.DataFrame, picks: pd.DataFrame) -> str:
+COMPARISON_SECTIONS = {
+    "6_factor_vs_baseline": "6. Factor vs baseline (brain vs baseline in the same group, same line)",
+    "7_by_avg_group": "7. By season average group (brain vs baseline, same line)",
+}
+
+
+def _title(text: str) -> list[str]:
+    return ["", text, "-" * len(text)]
+
+
+def format_report(summary: pd.DataFrame, comparisons: pd.DataFrame, picks: pd.DataFrame) -> str:
     seasons = ", ".join(sorted(picks["season"].unique()))
     lines = [
         "BOUNCEBACK PREDICTOR: BACKTEST REPORT",
         f"Seasons: {seasons}",
-        f"* = fewer than {config.MIN_RELIABLE_PICKS} picks (small sample, do not trust)",
+        f"* = fewer than {config.MIN_RELIABLE_PICKS} brain picks (small sample, do not trust)",
         "max price = hit rate x 100 - fee buffer; min odds = 100 / max price",
+        "diff = brain hit rate - baseline hit rate, in percentage points",
+        f"'{ALL_LINES}' baseline = same line mix as the brain picks in that group",
         "",
     ]
     for rule in sorted(summary["line_rule"].unique()):
         lines += ["=" * 100, f"LINE RULE: {rule}", "=" * 100]
         for key, title in SECTIONS.items():
             rows = summary[(summary["line_rule"] == rule) & (summary["section"] == key)]
-            lines += ["", title, "-" * len(title), _format_table(rows)]
-        lines += ["", "6. Example picks", "----------------", example_picks(picks, rule).to_string(index=False), ""]
+            lines += _title(title) + [_format_table(rows)]
+        for key, title in COMPARISON_SECTIONS.items():
+            rows = comparisons[(comparisons["line_rule"] == rule) & (comparisons["view"] == key)]
+            lines += _title(title) + [format_comparison(rows)]
+        lines += _title("8. Example picks") + [example_picks(picks, rule).to_string(index=False), ""]
     return "\n".join(lines)

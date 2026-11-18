@@ -10,16 +10,18 @@ from pathlib import Path
 import pandas as pd
 
 from src import config
+from src.backtest.compare import build_comparisons
 from src.backtest.report import build_summary, format_report
 from src.brain.features import build_features
 from src.brain.picks import make_picks
 
 
-def run_backtest(games: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, str]:
-    """Return (picks, summary, report text)."""
+def run_backtest(games: pd.DataFrame) -> tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, str]:
+    """Return (picks, summary, comparisons, report text)."""
     picks = make_picks(build_features(games))
     summary = build_summary(picks)
-    return picks, summary, format_report(summary, picks)
+    comparisons = build_comparisons(picks)
+    return picks, summary, comparisons, format_report(summary, comparisons, picks)
 
 
 def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
@@ -33,7 +35,7 @@ def main(argv: list[str] | None = None) -> None:
     args = parse_args(argv)
     if not args.games.exists():
         raise SystemExit(f"{args.games} not found. Run: python -m src.data.download_games")
-    _, _, text = run_backtest(pd.read_parquet(args.games))
+    *_, text = run_backtest(pd.read_parquet(args.games))
     print(text)
     args.report.parent.mkdir(parents=True, exist_ok=True)
     args.report.write_text(text)

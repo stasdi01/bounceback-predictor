@@ -57,6 +57,7 @@ STRENGTH_BUCKETS: int = 3  # low / mid / high groups for each strength factor
 DAYS_SINCE_BINS: tuple[int, ...] = (1, 2, 4, 8)  # groups: 1 / 2-3 / 4-7 / 8+
 REPORT_EXAMPLE_PICKS: int = 10
 REPORT_SEED: int = 42
+AVG_GROUPS: tuple[int, ...] = (14, 20, 25, 30)  # season avg groups: 14-19.9 / 20-24.9 / 25-29.9
 
 # File paths (relative to the project root).
 GAMES_PATH: Path = Path("data/games.parquet")

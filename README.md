@@ -49,8 +49,9 @@ about 30 seconds (10 calls, 2 seconds apart).
 
 Needs `data/games.parquet` (see above). Builds features, applies the
 brain rules and prints the report (brain vs baseline, by line, by
-bad-game reason, by strength factor, by season, example picks). The
-report is also saved to `data/report.txt`.
+bad-game reason, by strength factor, by season, factor vs baseline in
+the same group, by season average group, example picks). The report is
+also saved to `data/report.txt`.
 
 ```bash
 python -m src.backtest.run

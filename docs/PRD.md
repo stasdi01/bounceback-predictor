@@ -171,6 +171,7 @@ All numbers live in one config file. Never hard-code them in logic.
 | REPORT_EXAMPLE_PICKS | 10                                     |
 | REPORT_SEED         | 42                                      |
 | END_OF_SEASON_DAYS  | 7 (analysis only, not a rule)           |
+| AVG_GROUPS          | 14, 20, 25, 30 (groups 14–19.9 / 20–24.9 / 25–29.9, report only) |
 
 ## 5. Money tracking (paper trading)
 
@@ -252,6 +253,7 @@ bounceback-predictor/
 
 Work on **one phase at a time**. Don't start the next phase until the current one is done
 and I say so. Phase 1 can be split into steps (1.1, 1.2, …), with one commit each.
+Phase 1 step order: 1.1 → 1.2 → 1.3 → 1.4 → 1.5 → **1.7 (Kalshi price check) → 1.6**.
 
 ---
 
@@ -316,7 +318,16 @@ For each line rule, show picks, wins, hit rate, max price, and the 95% range of 
    and for the bad game)
 4. **By each strength factor** (for example personal bounce-back rate high vs low)
 5. By season (is it stable?)
-6. Example picks
+6. **Factor vs baseline** (analysis only): for each strength factor group (consistency,
+   unlucky bad game, low minutes, bb_rate_season, bb_rate_all, drop_ratio, days since last
+   game, end of season), brain vs baseline hit rate on the same line. This shows whether a
+   factor helps the bounce-back specifically, or only marks better players in every game.
+   - Baseline = the **same group** on the same line.
+   - For factors that only exist for bad games (unlucky, drop_ratio, low minutes):
+     baseline = the **overall** baseline on the same line.
+7. **By season average group** (14–19.9, 20–24.9, 25–29.9): brain vs baseline for each
+   group, on the same line.
+8. Example picks
 
 **1.5 Save outputs**
 
@@ -436,3 +447,5 @@ Newest at the bottom. Format: date: decision.
 - 2026-11-18: Report settings added: CI_Z = 1.96, MIN_RELIABLE_PICKS = 300, STRENGTH_BUCKETS = 3, DAYS_SINCE_BINS = 1, 2, 4, 8, REPORT_EXAMPLE_PICKS = 10, REPORT_SEED = 42.
 - 2026-11-18: Strength score will be chosen on 2021-22 to 2023-24 and checked on 2024-25 and 2025-26.
 - 2026-11-18: End-of-season analysis flags added (pick's game and bad game in the last END_OF_SEASON_DAYS = 7 days of the season). Analysis only, not a rule.
+- 2026-11-18: Report gets two analysis views: factor vs baseline (same group, same line) and by season average group (AVG_GROUPS = 14, 20, 25, 30). Report shows "-" when max price is 0 or below.
+- 2026-11-18: Phase 1 step order changed: 1.5, then 1.7 (Kalshi price check), then 1.6.
