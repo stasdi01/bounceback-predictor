@@ -289,13 +289,14 @@ For each player-game (grouped by player + season, sorted by date), using earlier
 
 - Eligibility (4.1), trigger (4.2), confidence (4.3), both line rules (4.4).
 - Also create **baseline** picks: same eligibility and line rule, no trigger.
+  The baseline is every eligible game, so it includes the brain picks.
 - Analysis flags: `low_minutes` (last game minutes < 75% of avg), `blowout` (|last team margin| ≥ 20).
 - `hit` = points ≥ line.
 
 **1.4 Report** (printed and saved)
 For each line rule, show picks, wins, hit rate, max price, and the 95% range of the hit rate:
 
-1. Brain (normal, strong) vs baseline
+1. Brain (normal, strong) vs baseline, plus one extra row: baseline on non-bad games only
 2. Brain picks by line (10+, 15+, 20+, …)
 3. By bad-game reason (low minutes, blowout, unlucky)
 4. **By each strength factor** (for example personal bounce-back rate high vs low)
@@ -416,3 +417,4 @@ Newest at the bottom. Format: date: decision.
 - 2026-11-18: Personal bounce-back rate counts an earlier bad game only if the brain would have triggered on it then (10+ games, average 14 to 29.9, last game ≤ 60%).
 - 2026-11-18: Personal bounce-back rate saved in two versions: this season only, and all earlier games including earlier seasons.
 - 2026-11-18: `days_since_last_game` added as a feature, for analysis only (not a rule).
+- 2026-11-18: Baseline = every eligible game, including the brain picks. The 1.4 report also shows baseline on non-bad games only.

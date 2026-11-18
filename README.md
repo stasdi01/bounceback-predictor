@@ -9,9 +9,10 @@ Full rules and plan: [`docs/PRD.md`](docs/PRD.md).
 
 ## Status
 
-Phase 0 (project setup) is done. Phase 1: step 1.1 (download data) and
-step 1.2 (build features, `src/brain/features.py`) are done. The rules
-that make picks (step 1.3) are not built yet.
+Phase 0 (project setup) is done. Phase 1: step 1.1 (download data),
+step 1.2 (build features, `src/brain/features.py`) and step 1.3 (apply
+rules, `src/brain/picks.py`) are done. The backtest report (step 1.4)
+is not built yet.
 
 ## Setup
 

@@ -28,3 +28,34 @@ def is_bad_game(points: pd.Series, avg_pts: pd.Series) -> pd.Series:
     give False.
     """
     return (points <= config.BAD_GAME_RATIO * avg_pts).fillna(False).astype(bool)
+
+
+def line_fixed_gap(avg_pts: pd.Series) -> pd.Series:
+    """PRD 4.4 Rule A: highest line that is at least FIXED_GAP below the average.
+
+    Returns NaN where no line fits (no pick).
+    """
+    line = pd.Series(float("nan"), index=avg_pts.index)
+    for value in sorted(config.LINES):  # ascending: the last match is the highest
+        line[avg_pts - config.FIXED_GAP >= value] = value
+    return line
+
+
+def line_history(features: pd.DataFrame) -> pd.Series:
+    """PRD 4.4 Rule B: highest line reached in >= HISTORY_HIT_RATE of earlier games.
+
+    Uses the hit_{line} columns from features. Returns NaN where no line fits.
+    """
+    line = pd.Series(float("nan"), index=features.index)
+    for value in sorted(config.LINES):
+        line[features[f"hit_{value}"] >= config.HISTORY_HIT_RATE] = value
+    return line
+
+
+def confidence(prev2_pts: pd.Series, avg_pts: pd.Series) -> pd.Series:
+    """PRD 4.3, for rows where the last game was bad.
+
+    "strong" if the game before last was also bad (vs today's average), else "normal".
+    """
+    two_bad = is_bad_game(prev2_pts, avg_pts)
+    return two_bad.map({True: "strong", False: "normal"})
