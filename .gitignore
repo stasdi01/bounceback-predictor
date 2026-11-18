@@ -1,8 +1,10 @@
 CLAUDE.md
-data/
+/data/
 .env
 .venv/
 __pycache__/
 .pytest_cache/
 node_modules/
 .DS_Store
+*.duckdb
+.ruff_cache/

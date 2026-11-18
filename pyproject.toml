@@ -1,0 +1,10 @@
+[project]
+name = "bounceback-predictor"
+version = "0.1.0"
+description = "Rule-based NBA player-points predictor for Kalshi lines"
+requires-python = ">=3.12"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
+addopts = "-ra"
