@@ -172,6 +172,13 @@ All numbers live in one config file. Never hard-code them in logic.
 | REPORT_SEED         | 42                                      |
 | END_OF_SEASON_DAYS  | 7 (analysis only, not a rule)           |
 | AVG_GROUPS          | 14, 20, 25, 30 (groups 14–19.9 / 20–24.9 / 25–29.9, report only) |
+| KALSHI_API_BASE     | https://api.elections.kalshi.com/trade-api/v2 |
+| KALSHI_SERIES       | KXNBAPTS                                |
+| KALSHI_SEASONS      | 2025-26 (seasons with Kalshi prices in the backtest) |
+| KALSHI_REQUEST_DELAY_SECONDS | 0.25                           |
+| KALSHI_TAKER_FEE_RATE | 0.07 (× fee multiplier from the API)  |
+| KALSHI_BACKTEST_CONTRACTS | 100 (contracts per pick, for fee rounding) |
+| KALSHI_NO_SELLER_ASK | 0.99 (ask at or above this = no real price, skip) |
 
 ## 5. Money tracking (paper trading)
 
@@ -353,6 +360,25 @@ Check whether Kalshi's historical API has past prices for NBA player-points mark
 - If yes: add a step to apply minimum odds and calculate backtest profit.
 - If no: the backtest reports hit rates only, and money is measured from live picks.
 
+**Result of the check (2026-11-18):** yes, but only from **2025-11-18** (series `KXNBAPTS`).
+Kalshi lists about 4 players per game, so about half of our picks have a market on the chosen line.
+The step is built for the finished 2025-26 season only:
+
+- `python -m src.data.kalshi_history` downloads all `KXNBAPTS` markets, matches events to NBA games
+  (ET date + team codes, tip-off times from the NBA schedule) and player names to NBA player IDs,
+  and saves the bid / ask / last price at **tip-off − 60 minutes** (1-minute candlesticks) for every
+  market that matches a pick. Output: `data/kalshi_prices.parquet` (re-runs only download what is new).
+- **Price used:** the **ask** at tip-off − 60 minutes (what we would really pay). Picks with no quote
+  or ask ≥ 0.99 are skipped and counted. The mid price is shown for reference only.
+- **Fees:** Kalshi taker fee = round up to the cent of `M × 0.07 × C × P × (1 − P)`, with P = price in
+  dollars, C = contracts, M = the series fee multiplier (read `fee_type` and `fee_multiplier` from the
+  API). The backtest assumes C = 100 contracts per pick, and each pick stakes 1 unit (price + fee).
+  This formula is used for profit; `FEE_BUFFER_CENTS` is still used for the max price.
+- **Report section 9:** brain vs baseline: hit rate vs ask-implied probability, ROI with and without
+  minimum odds, by line, confidence, unlucky bad game, low minutes and season average group.
+  Saved as `data/kalshi_summary.csv` and DuckDB tables `kalshi_prices` and `kalshi_summary`.
+  This is "first evidence": about 350–400 priced brain picks per line rule.
+
 **Done when:** all tests pass, the backtest runs end-to-end on real data, the report shows brain vs
 baseline for both line rules and the hit rate for each strength factor, and the Kalshi check is done.
 
@@ -451,3 +477,7 @@ Newest at the bottom. Format: date: decision.
 - 2026-11-18: Report gets two analysis views: factor vs baseline (same group, same line) and by season average group (AVG_GROUPS = 14, 20, 25, 30). Report shows "-" when max price is 0 or below.
 - 2026-11-18: Phase 1 step order changed: 1.5, then 1.7 (Kalshi price check), then 1.6.
 - 2026-11-18: Step 1.5 also saves the comparisons (sections 6 and 7) as `data/comparisons.csv` and DuckDB table `comparisons`.
+- 2026-11-18: Kalshi history check: prices exist from 2025-11-18 (KXNBAPTS). Step 1.7 uses the finished 2025-26 season only; 2026-27 later.
+- 2026-11-18: Backtest price = ask at tip-off − 60 min; skip (and count) picks with no quote or ask ≥ 0.99. Mid price for reference only.
+- 2026-11-18: Profit uses the verified Kalshi taker fee: round up(M × 0.07 × C × P × (1 − P)), M from the API. KALSHI_TAKER_FEE_RATE = 0.07. FEE_BUFFER_CENTS still used for max price.
+- 2026-11-18: Section 9 also shows unlucky bad game, low minutes and season average groups.

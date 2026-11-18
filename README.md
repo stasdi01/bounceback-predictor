@@ -10,9 +10,9 @@ Full rules and plan: [`docs/PRD.md`](docs/PRD.md).
 ## Status
 
 Phase 0 (project setup) is done. Phase 1: steps 1.1 (download data),
-1.2 (build features), 1.3 (apply rules), 1.4 (backtest report) and 1.5
-(save outputs) are done. Next: 1.7 (Kalshi price history check), then
-1.6 (acceptance tests and fake data generator).
+1.2 (build features), 1.3 (apply rules), 1.4 (backtest report), 1.5
+(save outputs) and 1.7 (Kalshi price history) are done. Next: 1.6
+(acceptance tests and fake data generator).
 
 ## Setup
 
@@ -46,6 +46,21 @@ When you choose some seasons, only those seasons are replaced in
 `data/games.parquet`; the other seasons stay. A full download takes
 about 30 seconds (10 calls, 2 seconds apart).
 
+## Download Kalshi prices (optional, for report section 9)
+
+Kalshi has NBA player-points prices (series `KXNBAPTS`) from 2025-11-18.
+This downloads, for every backtest pick that has a Kalshi market on its
+line, the bid / ask / last price at tip-off − 60 minutes, and saves
+`data/kalshi_prices.parquet`. No login is needed.
+
+```bash
+python -m src.data.kalshi_history                  # about 25 minutes the first time
+python -m src.data.kalshi_history --max-markets 20 # quick test
+```
+
+A re-run only downloads markets that are not in the file yet. Needs
+`data/games.parquet` first.
+
 ## Run the backtest
 
 Needs `data/games.parquet` (see above). Builds features, applies the
@@ -69,7 +84,8 @@ Each run replaces these files (they are not committed):
 | `data/picks.parquet` | Every pick row: baseline and brain, both line rules |
 | `data/summary.csv` | Report sections 1-5 as one table |
 | `data/comparisons.csv` | Report sections 6-7 (brain vs baseline inside groups) |
-| `data/nba.duckdb` | Tables `games`, `picks`, `summary`, `comparisons` |
+| `data/kalshi_summary.csv` | Report section 9 (only if Kalshi prices exist) |
+| `data/nba.duckdb` | Tables `games`, `picks`, `summary`, `comparisons` (+ `kalshi_prices`, `kalshi_summary`) |
 
 Example DuckDB query (brain hit rate per line rule):
 

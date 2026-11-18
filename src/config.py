@@ -59,9 +59,19 @@ REPORT_EXAMPLE_PICKS: int = 10
 REPORT_SEED: int = 42
 AVG_GROUPS: tuple[int, ...] = (14, 20, 25, 30)  # season avg groups: 14-19.9 / 20-24.9 / 25-29.9
 
+# Kalshi price history (1.7).
+KALSHI_API_BASE: str = "https://api.elections.kalshi.com/trade-api/v2"
+KALSHI_SERIES: str = "KXNBAPTS"  # NBA player points
+KALSHI_SEASONS: tuple[str, ...] = ("2025-26",)  # seasons with Kalshi prices in the backtest
+KALSHI_REQUEST_DELAY_SECONDS: float = 0.25
+KALSHI_TAKER_FEE_RATE: float = 0.07  # fee = round up(multiplier x rate x C x P x (1 - P))
+KALSHI_BACKTEST_CONTRACTS: int = 100  # contracts per pick, only matters for fee rounding
+KALSHI_NO_SELLER_ASK: float = 0.99  # ask at or above this = no real seller, skip the pick
+
 # File paths (relative to the project root).
 DATA_DIR: Path = Path("data")
 GAMES_PATH: Path = DATA_DIR / "games.parquet"
+KALSHI_PRICES_PATH: Path = DATA_DIR / "kalshi_prices.parquet"
 
 # Backtest output file names (1.5), written inside the output folder (default DATA_DIR).
 REPORT_FILE: str = "report.txt"
@@ -69,3 +79,4 @@ PICKS_FILE: str = "picks.parquet"
 SUMMARY_FILE: str = "summary.csv"
 COMPARISONS_FILE: str = "comparisons.csv"
 DUCKDB_FILE: str = "nba.duckdb"
+KALSHI_SUMMARY_FILE: str = "kalshi_summary.csv"

@@ -15,8 +15,8 @@ TABLES = {"games", "picks", "summary", "comparisons"}
 @pytest.fixture(scope="module")
 def backtest():
     games = synthetic_games()
-    picks, summary, comparisons, _ = run.run_backtest(games)
-    return games, picks, summary, comparisons
+    r = run.run_backtest(games)
+    return games, r.picks, r.summary, r.comparisons
 
 
 @pytest.fixture
@@ -25,7 +25,7 @@ def out_dir(tmp_path):
     games_path = tmp_path / "games.parquet"
     synthetic_games().to_parquet(games_path, index=False)
     out = tmp_path / "out"
-    run.main(["--games", str(games_path), "--out-dir", str(out)])
+    run.main(["--games", str(games_path), "--out-dir", str(out), "--prices", str(tmp_path / "none.parquet")])
     return out
 
 
@@ -72,7 +72,7 @@ def test_duckdb_has_the_tables_with_right_row_counts(out_dir, backtest):
 
 def test_running_twice_replaces_not_appends(tmp_path, out_dir, backtest):
     games_path = tmp_path / "games.parquet"
-    run.main(["--games", str(games_path), "--out-dir", str(out_dir)])
+    run.main(["--games", str(games_path), "--out-dir", str(out_dir), "--prices", str(tmp_path / "none.parquet")])
     _, picks, _, _ = backtest
     assert query(out_dir / config.DUCKDB_FILE, "SELECT COUNT(*) FROM picks")[0][0] == len(picks)
     assert len(pd.read_parquet(out_dir / config.PICKS_FILE)) == len(picks)

@@ -10,6 +10,7 @@ import pandas as pd
 from src import config
 from src.backtest.compare import ALL_LINES, format_comparison
 from src.backtest.groups import days_buckets, quantile_buckets
+from src.backtest.kalshi_profit import KalshiResult, format_kalshi_section
 from src.backtest.stats import summarize
 
 SECTIONS = {
@@ -150,7 +151,8 @@ def _title(text: str) -> list[str]:
     return ["", text, "-" * len(text)]
 
 
-def format_report(summary: pd.DataFrame, comparisons: pd.DataFrame, picks: pd.DataFrame) -> str:
+def format_report(summary: pd.DataFrame, comparisons: pd.DataFrame, picks: pd.DataFrame,
+                  kalshi: KalshiResult | None = None) -> str:
     seasons = ", ".join(sorted(picks["season"].unique()))
     lines = [
         "BOUNCEBACK PREDICTOR: BACKTEST REPORT",
@@ -169,5 +171,12 @@ def format_report(summary: pd.DataFrame, comparisons: pd.DataFrame, picks: pd.Da
         for key, title in COMPARISON_SECTIONS.items():
             rows = comparisons[(comparisons["line_rule"] == rule) & (comparisons["view"] == key)]
             lines += _title(title) + [format_comparison(rows)]
-        lines += _title("8. Example picks") + [example_picks(picks, rule).to_string(index=False), ""]
+        lines += _title("8. Example picks") + [example_picks(picks, rule).to_string(index=False)]
+        lines += _title("9. Kalshi prices (brain vs baseline, real prices)") + [_kalshi_text(kalshi, rule), ""]
     return "\n".join(lines)
+
+
+def _kalshi_text(kalshi: KalshiResult | None, rule: str) -> str:
+    if kalshi is None:
+        return f"No Kalshi prices ({config.KALSHI_PRICES_PATH}). Run: python -m src.data.kalshi_history"
+    return format_kalshi_section(kalshi, rule)

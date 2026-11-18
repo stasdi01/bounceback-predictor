@@ -49,29 +49,27 @@ def write_duckdb(tables: dict[str, pd.DataFrame], path: Path) -> None:
     tmp.replace(path)
 
 
-def save_outputs(
-    out_dir: Path,
-    games: pd.DataFrame,
-    picks: pd.DataFrame,
-    summary: pd.DataFrame,
-    comparisons: pd.DataFrame,
-    report: str,
-) -> dict[str, Path]:
-    """Write all backtest outputs into `out_dir`. Returns the written paths."""
+def save_outputs(out_dir: Path, games: pd.DataFrame, result, prices: pd.DataFrame | None = None) -> dict[str, Path]:
+    """Write all backtest outputs into `out_dir`. Returns the written paths.
+
+    `result` is a run.BacktestResult. Kalshi outputs are written only if there are prices.
+    """
     out_dir.mkdir(parents=True, exist_ok=True)
     paths = {
         "report": out_dir / config.REPORT_FILE,
         "picks": out_dir / config.PICKS_FILE,
         "summary": out_dir / config.SUMMARY_FILE,
         "comparisons": out_dir / config.COMPARISONS_FILE,
-        "duckdb": out_dir / config.DUCKDB_FILE,
     }
-    write_text(report, paths["report"])
-    write_parquet(picks, paths["picks"])
-    write_csv(summary, paths["summary"])
-    write_csv(comparisons, paths["comparisons"])
-    write_duckdb(
-        {"games": games, "picks": picks, "summary": summary, "comparisons": comparisons},
-        paths["duckdb"],
-    )
+    write_text(result.report, paths["report"])
+    write_parquet(result.picks, paths["picks"])
+    write_csv(result.summary, paths["summary"])
+    write_csv(result.comparisons, paths["comparisons"])
+    tables = {"games": games, "picks": result.picks, "summary": result.summary, "comparisons": result.comparisons}
+    if result.kalshi is not None:
+        paths["kalshi_summary"] = out_dir / config.KALSHI_SUMMARY_FILE
+        write_csv(result.kalshi.summary, paths["kalshi_summary"])
+        tables.update({"kalshi_prices": prices, "kalshi_summary": result.kalshi.summary})
+    paths["duckdb"] = out_dir / config.DUCKDB_FILE
+    write_duckdb(tables, paths["duckdb"])
     return paths

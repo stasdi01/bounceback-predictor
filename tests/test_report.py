@@ -165,7 +165,7 @@ def test_run_main_saves_report(tmp_path, capsys):
     games_path = tmp_path / "games.parquet"
     synthetic_games().to_parquet(games_path, index=False)
     out_dir = tmp_path / "out"
-    run.main(["--games", str(games_path), "--out-dir", str(out_dir)])
+    run.main(["--games", str(games_path), "--out-dir", str(out_dir), "--prices", str(tmp_path / "none.parquet")])
     assert "LINE RULE: fixed_gap" in (out_dir / config.REPORT_FILE).read_text()
     assert "Saved:" in capsys.readouterr().out
 
