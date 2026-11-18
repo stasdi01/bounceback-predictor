@@ -14,7 +14,7 @@ from src.backtest.report import build_summary, format_report, pick_reason
 from src.backtest.stats import max_price_cents, min_odds, summarize, wilson_range
 from src.brain.features import build_features
 from src.brain.picks import make_picks
-from tests.helpers import make_games
+from tests.helpers import synthetic_games
 
 
 # --- stats ------------------------------------------------------------------
@@ -92,22 +92,6 @@ def test_pick_reason():
 
 # --- full summary on synthetic data -----------------------------------------
 
-def synthetic_games() -> pd.DataFrame:
-    """Several players over two seasons with random scoring around 15-25 ppg."""
-    rng = np.random.default_rng(7)
-    frames = []
-    for pid in range(1, 9):
-        for season, start in [("2023-24", "2023-10-24"), ("2024-25", "2024-10-22")]:
-            mean = 14 + 2 * pid
-            pts = np.clip(rng.normal(mean, mean * 0.4, 60).round(), 0, None).astype(int)
-            frames.append(make_games(
-                list(pts), player_id=pid, season=season, start=start,
-                minutes=list(rng.integers(15, 40, 60)), fga=list(rng.integers(5, 25, 60)),
-                margin=list(rng.integers(-30, 30, 60)),
-            ))
-    return pd.concat(frames, ignore_index=True)
-
-
 @pytest.fixture(scope="module")
 def picks():
     return make_picks(build_features(synthetic_games()))
@@ -180,11 +164,10 @@ def test_example_picks_are_the_same_every_run(picks, summary, comparisons):
 def test_run_main_saves_report(tmp_path, capsys):
     games_path = tmp_path / "games.parquet"
     synthetic_games().to_parquet(games_path, index=False)
-    report_path = tmp_path / "out" / "report.txt"
-    run.main(["--games", str(games_path), "--report", str(report_path)])
-    assert report_path.exists()
-    assert "LINE RULE: fixed_gap" in report_path.read_text()
-    assert "Report saved" in capsys.readouterr().out
+    out_dir = tmp_path / "out"
+    run.main(["--games", str(games_path), "--out-dir", str(out_dir)])
+    assert "LINE RULE: fixed_gap" in (out_dir / config.REPORT_FILE).read_text()
+    assert "Saved:" in capsys.readouterr().out
 
 
 def test_run_main_without_games_file(tmp_path):

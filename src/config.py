@@ -60,5 +60,12 @@ REPORT_SEED: int = 42
 AVG_GROUPS: tuple[int, ...] = (14, 20, 25, 30)  # season avg groups: 14-19.9 / 20-24.9 / 25-29.9
 
 # File paths (relative to the project root).
-GAMES_PATH: Path = Path("data/games.parquet")
-REPORT_PATH: Path = Path("data/report.txt")
+DATA_DIR: Path = Path("data")
+GAMES_PATH: Path = DATA_DIR / "games.parquet"
+
+# Backtest output file names (1.5), written inside the output folder (default DATA_DIR).
+REPORT_FILE: str = "report.txt"
+PICKS_FILE: str = "picks.parquet"
+SUMMARY_FILE: str = "summary.csv"
+COMPARISONS_FILE: str = "comparisons.csv"
+DUCKDB_FILE: str = "nba.duckdb"

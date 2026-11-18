@@ -331,8 +331,9 @@ For each line rule, show picks, wins, hit rate, max price, and the 95% range of 
 
 **1.5 Save outputs**
 
-- `data/picks.parquet`, `data/summary.csv`
-- DuckDB file `data/nba.duckdb` with tables `games`, `picks`, `summary`
+- `data/picks.parquet`, `data/summary.csv`, `data/comparisons.csv`
+- DuckDB file `data/nba.duckdb` with tables `games`, `picks`, `summary`, `comparisons`
+- Each run replaces these files and tables (no appending).
 
 **1.6 Acceptance tests (pytest)**
 
@@ -449,3 +450,4 @@ Newest at the bottom. Format: date: decision.
 - 2026-11-18: End-of-season analysis flags added (pick's game and bad game in the last END_OF_SEASON_DAYS = 7 days of the season). Analysis only, not a rule.
 - 2026-11-18: Report gets two analysis views: factor vs baseline (same group, same line) and by season average group (AVG_GROUPS = 14, 20, 25, 30). Report shows "-" when max price is 0 or below.
 - 2026-11-18: Phase 1 step order changed: 1.5, then 1.7 (Kalshi price check), then 1.6.
+- 2026-11-18: Step 1.5 also saves the comparisons (sections 6 and 7) as `data/comparisons.csv` and DuckDB table `comparisons`.

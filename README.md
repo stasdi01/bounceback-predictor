@@ -10,8 +10,9 @@ Full rules and plan: [`docs/PRD.md`](docs/PRD.md).
 ## Status
 
 Phase 0 (project setup) is done. Phase 1: steps 1.1 (download data),
-1.2 (build features), 1.3 (apply rules) and 1.4 (backtest report) are
-done. Saving picks, summary and DuckDB (step 1.5) is not built yet.
+1.2 (build features), 1.3 (apply rules), 1.4 (backtest report) and 1.5
+(save outputs) are done. Next: 1.7 (Kalshi price history check), then
+1.6 (acceptance tests and fake data generator).
 
 ## Setup
 
@@ -50,11 +51,30 @@ about 30 seconds (10 calls, 2 seconds apart).
 Needs `data/games.parquet` (see above). Builds features, applies the
 brain rules and prints the report (brain vs baseline, by line, by
 bad-game reason, by strength factor, by season, factor vs baseline in
-the same group, by season average group, example picks). The report is
-also saved to `data/report.txt`.
+the same group, by season average group, example picks), then saves all
+outputs.
 
 ```bash
-python -m src.backtest.run
+python -m src.backtest.run                     # outputs go to data/
+python -m src.backtest.run --out-dir some/dir  # or another folder
+```
+
+### Outputs
+
+Each run replaces these files (they are not committed):
+
+| File | Content |
+|---|---|
+| `data/report.txt` | The printed report |
+| `data/picks.parquet` | Every pick row: baseline and brain, both line rules |
+| `data/summary.csv` | Report sections 1-5 as one table |
+| `data/comparisons.csv` | Report sections 6-7 (brain vs baseline inside groups) |
+| `data/nba.duckdb` | Tables `games`, `picks`, `summary`, `comparisons` |
+
+Example DuckDB query (brain hit rate per line rule):
+
+```bash
+python -c "import duckdb; print(duckdb.connect('data/nba.duckdb', read_only=True).sql(\"SELECT line_rule, COUNT(*) AS picks, AVG(hit::INT) AS hit_rate FROM picks WHERE is_brain GROUP BY 1\"))"
 ```
 
 ## Settings
